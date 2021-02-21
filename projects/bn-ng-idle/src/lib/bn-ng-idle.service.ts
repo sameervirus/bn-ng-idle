@@ -44,10 +44,23 @@ export class BnNgIdleService {
   }
 
   private startTimer() {
-   this.timer$ = timer(this.timeOutMilliSeconds, this.timeOutMilliSeconds).subscribe((res) => {
-      this.expired$.next(true);
+    localStorage.setItem('idleTimeout', Date.now());
+
+    // run timer every 1 second and check if we've reached timeout
+    this.timer$ = timer(1000, 1000).subscribe((res) => {
+        // check cached time in case another tab was active
+        const cachedTime = parseInt(localStorage.getItem('idleTimeout')) || Date.now();
+
+        // idle true
+        if (Date.now() - cachedTime > this.timeoutMilliSeconds) {
+            this.expired$.next(true);
+        }
+        // idle false   
+        else {
+            this.expired$.next(false);
+        }         
     });
-  }
+}
 
   public resetTimer() {
     this.timer$.unsubscribe();
